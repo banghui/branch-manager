@@ -75,7 +75,7 @@ func getStatusHeight(s *state.State) int {
 	lines := strings.Split(status, "\n")
 	rows := int(math.Max(2, float64(len(lines))))
 	for _, s := range lines {
-		if l := len(s); l > dim.W {
+		if l := len(s); l+2 > dim.W {
 			rows += 1
 		}
 	}

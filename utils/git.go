@@ -58,7 +58,7 @@ func GetCurrentBranch() string {
 }
 
 func DeleteGitBranch(b string) (error, string) {
-	cmd := exec.Command("git", "branch", "-d", b)
+	cmd := exec.Command("git", "branch", "-D", b)
 	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
 		return err, string(stdOutErr)
 	}
