@@ -20,7 +20,7 @@ func dirExists(name string) (bool, error) {
 	return false, err
 }
 
-func getGitDir() string {
+func getGitDir() (error, string) {
 	const GIT_DIR = "/.git/"
 	wd, _ := os.Getwd()
 	// Traverse all the way to root '/'
@@ -30,31 +30,37 @@ func getGitDir() string {
 			break
 		} else {
 			if wd == "/" {
-				panic(errors.New("no git repo found"))
+				return errors.New("no git repo found"), ""
 			}
 			wd = filepath.Dir(wd)
 		}
 	}
-	return wd + GIT_DIR
+	return nil, wd + GIT_DIR
 }
 
 // Returns all git branch names in repo
-func GetGitBranches() []string {
-	gitDir := getGitDir()
+func GetGitBranches() (error, []string) {
+	err, gitDir := getGitDir()
+	if err != nil {
+		return err, nil
+	}
 	files, _ := ioutil.ReadDir(gitDir + "refs/heads")
 	fnames := make([]string, len(files))
 	for i, f := range files {
 		fnames[i] = f.Name()
 	}
-	return fnames
+	return nil, fnames
 }
 
-func GetCurrentBranch() string {
-	gitDir := getGitDir()
+func GetCurrentBranch() (error, string) {
+	err, gitDir := getGitDir()
+	if err != nil {
+		return err, ""
+	}
 	dat, _ := os.ReadFile(gitDir + "HEAD")
 	raw := string(dat)
 	current := strings.TrimSpace(strings.Replace(raw, "ref: refs/heads/", "", 1))
-	return current
+	return nil, current
 }
 
 func DeleteGitBranch(b string) (error, string) {

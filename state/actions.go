@@ -233,7 +233,7 @@ func filterBranches(f string, branches []string) []string {
 }
 
 func setFilter(f string, s *State) {
-	b := utils.GetGitBranches()
+	_, b := utils.GetGitBranches()
 	s.SetFilteredBranches(filterBranches(f, b))
 	s.SetFilter(f)
 	s.SetStatus("Filter: " + f + "\n" + FILTER_STATUS)
@@ -261,8 +261,9 @@ func setViewStatus(s *State) {
 }
 
 func refreshBranches(s *State) {
-	branches := utils.GetGitBranches()
+	_, branches := utils.GetGitBranches()
+	_, currentBranch := utils.GetCurrentBranch()
 	s.SetBranches(branches)
 	s.SetFilteredBranches(filterBranches(s.GetFilter(), branches))
-	s.SetCurrentBranch(utils.GetCurrentBranch())
+	s.SetCurrentBranch(currentBranch)
 }

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	render "hello/render"
 	state "hello/state"
 	utils "hello/utils"
 	"log"
+	"os"
 
 	ui "github.com/gizak/termui/v3"
 )
@@ -14,14 +16,21 @@ func main() {
 		log.Fatalf("failed to initialize termui: %v", err)
 	}
 
-	// defer ui.Close()
+	err, branches := utils.GetGitBranches()
+	if err != nil {
+		ui.Close()
+		fmt.Println("Error: No git repository found")
+		os.Exit(1)
+		return
+	}
+	_, currentBranch := utils.GetCurrentBranch()
 
 	termWidth, termHeight := ui.TerminalDimensions()
 
 	// Initial State
 	s := state.InitState(
-		utils.GetGitBranches(),
-		utils.GetCurrentBranch(),
+		branches,
+		currentBranch,
 		0,
 		state.VIEW_STATUS,
 		state.TerminalDimensions{
@@ -56,16 +65,9 @@ func main() {
 		case "<Resize>":
 			payload := e.Payload.(ui.Resize)
 			state.Resize(payload.Width, payload.Height, s)
-			// grid.SetRect(0, 0, payload.Width, payload.Height-STATUS_HEIGHT)
-			// p.SetRect(0, payload.Height-STATUS_HEIGHT, payload.Width, payload.Height)
-			// ui.Clear()
-			// ui.Render(grid, p)
 		default:
 			state.Multiplexer(e.ID, s, exit)
 		}
-
-		// Render
-		// ui.Render(grid, p)
 	}
 
 }
