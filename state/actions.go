@@ -236,19 +236,19 @@ func setFilter(f string, s *State) {
 	_, b := utils.GetGitBranches()
 	s.SetFilteredBranches(filterBranches(f, b))
 	s.SetFilter(f)
-	s.SetStatus("Filter: " + f + "\n" + FILTER_STATUS)
+	s.SetStatus("Filter: " + f + "█" + "\n" + FILTER_STATUS)
 }
 
 func setRename(r string, s *State) {
 	n := s.GetFilteredBranches()[s.GetSelectedRow()]
 	s.SetRename(r)
-	s.SetStatus("Rename: " + n + " → " + r + "\n" + RENAME_STATUS)
+	s.SetStatus("Rename: " + n + " → " + r + "█" + "\n" + RENAME_STATUS)
 }
 
 func setNewBranch(newBranch string, s *State) {
 	base := s.GetFilteredBranches()[s.GetSelectedRow()]
 	s.SetNewBranch(newBranch)
-	s.SetStatus("Base: " + base + " → " + newBranch + "\n" + NEW_BRANCH_STATUS)
+	s.SetStatus("Base: " + base + " → " + newBranch + "█" + "\n" + NEW_BRANCH_STATUS)
 }
 
 func setViewStatus(s *State) {
