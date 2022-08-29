@@ -44,10 +44,30 @@ func GetGitBranches() (error, []string) {
 	if err != nil {
 		return err, nil
 	}
-	files, _ := ioutil.ReadDir(gitDir + "refs/heads")
-	fnames := make([]string, len(files))
-	for i, f := range files {
-		fnames[i] = f.Name()
+	return getHierarchicalBranches(gitDir+"refs/heads", "")
+}
+
+// hierarchical branch name e.g.: feat/create-new-branch
+func getHierarchicalBranches(path string, prefix string) (error, []string) {
+	files, err1 := ioutil.ReadDir(path)
+	if err1 != nil {
+		return err1, nil
+	}
+	fnames := make([]string, 0)
+	pre := ""
+	if prefix != "" {
+		pre = prefix + "/"
+	}
+	for _, f := range files {
+		if n := f.Name(); f.IsDir() {
+			err2, h := getHierarchicalBranches(path+"/"+n, pre+n)
+			if err2 != nil {
+				return err2, nil
+			}
+			fnames = append(fnames, h...)
+		} else {
+			fnames = append(fnames, pre+n)
+		}
 	}
 	return nil, fnames
 }
