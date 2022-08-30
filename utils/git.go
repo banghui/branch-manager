@@ -4,9 +4,11 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
+
+	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 func dirExists(name string) (bool, error) {
@@ -22,6 +24,15 @@ func dirExists(name string) (bool, error) {
 
 func getGitDir() (error, string) {
 	const GIT_DIR = "/.git/"
+	err, wd := getRepoDir()
+	if err != nil {
+		return err, ""
+	}
+	return nil, wd + GIT_DIR
+}
+
+func getRepoDir() (error, string) {
+	const GIT_DIR = "/.git/"
 	wd, _ := os.Getwd()
 	// Traverse all the way to root '/'
 	for {
@@ -35,7 +46,7 @@ func getGitDir() (error, string) {
 			wd = filepath.Dir(wd)
 		}
 	}
-	return nil, wd + GIT_DIR
+	return nil, wd
 }
 
 // Returns all git branch names in repo
@@ -84,33 +95,76 @@ func GetCurrentBranch() (error, string) {
 }
 
 func DeleteGitBranch(b string) (error, string) {
-	cmd := exec.Command("git", "branch", "-D", b)
-	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
-		return err, string(stdOutErr)
+	_, dir := getRepoDir()
+	repo, _ := git.PlainOpen(dir)
+	ref := plumbing.NewBranchReferenceName(b)
+	err := repo.Storer.RemoveReference(ref)
+	if err != nil {
+		return err, err.Error()
 	}
 	return nil, ""
 }
 
 func CheckoutGitBranch(b string) (error, string) {
-	cmd := exec.Command("git", "checkout", b)
-	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
-		return err, string(stdOutErr)
+	_, dir := getRepoDir()
+	repo, _ := git.PlainOpen(dir)
+	worktree, _ := repo.Worktree()
+	name := plumbing.ReferenceName("refs/heads/" + b)
+	opts := &git.CheckoutOptions{
+		Branch: name,
+		Create: false,
+		Keep:   true,
+	}
+	err := worktree.Checkout(opts)
+	if err != nil {
+		return err, err.Error()
 	}
 	return nil, ""
 }
 
-func RenameGitBranch(oldName string, newName string) (error, string) {
-	cmd := exec.Command("git", "branch", "-m", oldName, newName)
-	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
-		return err, string(stdOutErr)
+func RenameGitBranch(oldName string, newName string, currentBranch string) (error, string) {
+	// Reference: https://github.com/go-git/go-git/issues/233
+	_, dir := getRepoDir()
+	repo, _ := git.PlainOpen(dir)
+	name := plumbing.ReferenceName("refs/heads/" + oldName)
+	baseRef, _ := repo.Reference(name, true)
+
+	// Create the new branch
+	branchRef := plumbing.NewBranchReferenceName(newName)
+	ref := plumbing.NewHashReference(branchRef, baseRef.Hash())
+	if err := repo.Storer.SetReference(ref); err != nil {
+		return err, err.Error()
 	}
+
+	// Checkout to the new branch
+	if currentBranch == oldName {
+		worktree, err := repo.Worktree()
+		if err != nil {
+			return err, err.Error()
+		}
+		opts := &git.CheckoutOptions{Branch: branchRef, Keep: true}
+		if err := worktree.Checkout(opts); err != nil {
+			return err, err.Error()
+		}
+	}
+
+	// Remove the old branch
+	if err := repo.Storer.RemoveReference(baseRef.Name()); err != nil {
+		return err, err.Error()
+	}
+
 	return nil, ""
 }
 
 func CreateGitBranch(newBranch string, base string) (error, string) {
-	cmd := exec.Command("git", "checkout", "-b", newBranch, base)
-	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
-		return err, string(stdOutErr)
+	_, dir := getRepoDir()
+	repo, _ := git.PlainOpen(dir)
+	name := plumbing.ReferenceName("refs/heads/" + base)
+	baseRef, _ := repo.Reference(name, true)
+	newBranchName := plumbing.ReferenceName("refs/heads/" + newBranch)
+	ref := plumbing.NewHashReference(newBranchName, baseRef.Hash())
+	if err := repo.Storer.SetReference(ref); err != nil {
+		return err, err.Error()
 	}
 	return nil, ""
 }

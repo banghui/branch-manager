@@ -1,9 +1,10 @@
 package render
 
 import (
-	state "hello/state"
 	"math"
 	"strings"
+
+	state "github.com/banghui/branch-manager/state"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"

@@ -1,8 +1,9 @@
 package state
 
 import (
-	utils "hello/utils"
 	"strings"
+
+	utils "github.com/banghui/branch-manager/utils"
 )
 
 const FILTER_STATUS = "Enter: Confirm filter | Esc: Clear filter and quit filter mode"
@@ -110,7 +111,8 @@ func renameMode(e string, s *State) {
 	case "<Enter>":
 		// Execute rename
 		name := s.GetFilteredBranches()[s.GetSelectedRow()]
-		if err, out := utils.RenameGitBranch(name, rename); err != nil {
+		currentBranch := s.GetCurrentBranch()
+		if err, out := utils.RenameGitBranch(name, rename, currentBranch); err != nil {
 			transitionToErrorMode(out, s)
 		} else {
 			refreshBranches(s)

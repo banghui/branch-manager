@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	render "hello/render"
-	state "hello/state"
-	utils "hello/utils"
 	"log"
 	"os"
+
+	render "github.com/banghui/branch-manager/render"
+	state "github.com/banghui/branch-manager/state"
+	utils "github.com/banghui/branch-manager/utils"
 
 	ui "github.com/gizak/termui/v3"
 )
