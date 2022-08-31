@@ -6,7 +6,6 @@
 CLI tool (For Macs) to help you manage your git branches easily
 
 # Prerequisite
-- git cli
 - go
 
 # Installation
