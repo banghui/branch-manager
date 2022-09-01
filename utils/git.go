@@ -24,11 +24,11 @@ func dirExists(name string) (bool, error) {
 
 func getGitDir() (error, string) {
 	const GIT_DIR = "/.git/"
-	err, wd := getRepoDir()
+	err, dir := getRepoDir()
 	if err != nil {
 		return err, ""
 	}
-	return nil, wd + GIT_DIR
+	return nil, dir + GIT_DIR
 }
 
 func getRepoDir() (error, string) {
@@ -51,11 +51,27 @@ func getRepoDir() (error, string) {
 
 // Returns all git branch names in repo
 func GetGitBranches() (error, []string) {
-	err, gitDir := getGitDir()
+	err, dir := getRepoDir()
 	if err != nil {
 		return err, nil
 	}
-	return getHierarchicalBranches(gitDir+"refs/heads", "")
+	repo, err := git.PlainOpen(dir)
+	if err != nil {
+		return err, nil
+	}
+	refIter, err := repo.Branches()
+	if err != nil {
+		return err, nil
+	}
+	var branches []string
+	if err := refIter.ForEach(func(ref *plumbing.Reference) error {
+		branches = append(branches, strings.Replace(ref.Name().String(), "refs/heads/", "", 1))
+		return nil
+	}); err != nil {
+		return err, nil
+	} else {
+		return nil, branches
+	}
 }
 
 // hierarchical branch name e.g.: feat/create-new-branch
