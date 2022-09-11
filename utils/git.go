@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -121,19 +122,11 @@ func DeleteGitBranch(b string) (error, string) {
 	return nil, ""
 }
 
+// go-git doesn't do checkouts correctly
 func CheckoutGitBranch(b string) (error, string) {
-	_, dir := getRepoDir()
-	repo, _ := git.PlainOpen(dir)
-	worktree, _ := repo.Worktree()
-	name := plumbing.ReferenceName("refs/heads/" + b)
-	opts := &git.CheckoutOptions{
-		Branch: name,
-		Create: false,
-		Keep:   true,
-	}
-	err := worktree.Checkout(opts)
-	if err != nil {
-		return err, err.Error()
+	cmd := exec.Command("git", "checkout", b)
+	if stdOutErr, err := cmd.CombinedOutput(); err != nil {
+		return err, string(stdOutErr)
 	}
 	return nil, ""
 }

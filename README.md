@@ -1,12 +1,13 @@
 
-# Branch Manager
+# Git Branch Manager
 
 ![best branch manager](static/branch-manager.png)
 
-CLI tool (For Macs) to help you manage your git branches easily
+CLI tool (For Mac) to help you manage your git branches easily
 
 # Prerequisite
 - go
+- git cli
 
 # Installation
 
